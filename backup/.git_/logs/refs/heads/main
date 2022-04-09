@@ -1,0 +1,23 @@
+0000000000000000000000000000000000000000 9077caf42f1b6ec930e385364814eb3ef707c5e3 davidsan-pro <davidsan.pro88@gmail.com> 1648049125 +0700	commit (initial): first commit
+9077caf42f1b6ec930e385364814eb3ef707c5e3 9077caf42f1b6ec930e385364814eb3ef707c5e3 davidsan-pro <davidsan.pro88@gmail.com> 1648049150 +0700	Branch: renamed refs/heads/master to refs/heads/main
+9077caf42f1b6ec930e385364814eb3ef707c5e3 4491d5edf6bc1040b4a9b18c069ba50447db69b4 davidsan-pro <davidsan.pro88@gmail.com> 1648049566 +0700	commit: test hello world
+4491d5edf6bc1040b4a9b18c069ba50447db69b4 333169b69c37aa3d7a57e4d704594b5e9c011fea davidsan-pro <davidsan.pro88@gmail.com> 1648049708 +0700	commit: deleted some files
+333169b69c37aa3d7a57e4d704594b5e9c011fea 2c1482e6db5313f26a173d1b53a9d788d789c7cc davidsan-pro <davidsan.pro88@gmail.com> 1648053030 +0700	commit: commit to heroku
+2c1482e6db5313f26a173d1b53a9d788d789c7cc 1a5109cdd2a35ea0ebba4261419665c25101b80d davidsan-pro <davidsan.pro88@gmail.com> 1648054237 +0700	commit: test push heroku
+1a5109cdd2a35ea0ebba4261419665c25101b80d efd3d86fa7b9bc3e950fde1bfafb395b822a0646 davidsan-pro <davidsan.pro88@gmail.com> 1648223078 +0700	commit: commit pk setting domainesia davidsan.pro88@gmail.com
+efd3d86fa7b9bc3e950fde1bfafb395b822a0646 7591c1d21c23196485b74a6962d40646d796b4df davidsan-pro <davidsan.pro88@gmail.com> 1648432830 +0700	commit: fix bug migration tabel
+7591c1d21c23196485b74a6962d40646d796b4df 1c2bda29d534518993bc7db263b6d26e450f2b8a davidsan-pro <davidsan.pro88@gmail.com> 1648667322 +0700	commit: perbaiki fungsi search
+1c2bda29d534518993bc7db263b6d26e450f2b8a 5abff0c90ea9ddbeeb6e506dff3c1611e7bfb236 davidsan-pro <davidsan.pro88@gmail.com> 1648667473 +0700	commit: buat file .gitignore
+5abff0c90ea9ddbeeb6e506dff3c1611e7bfb236 3a3dd07c81e387b04138c4e3523407abb08bc5da davidsan-pro <davidsan.pro88@gmail.com> 1649100474 +0700	commit: buat modul master n detail rute
+3a3dd07c81e387b04138c4e3523407abb08bc5da ca774558384f208031bdd32148b6e6835d29f69e davidsan-pro <davidsan.pro88@gmail.com> 1649412603 +0700	commit: lanjutkan modul rute
+ca774558384f208031bdd32148b6e6835d29f69e 61154bec3d21979fa0571d0d88cb6022e0190179 davidsan-pro <davidsan.pro88@gmail.com> 1649412626 +0700	commit: optimasi coding
+61154bec3d21979fa0571d0d88cb6022e0190179 76f16fc170d84f3d3693f1d4ab1fc6f5e36651a8 davidsan-pro <davidsan.pro88@gmail.com> 1649412924 +0700	commit: update .gitignore
+76f16fc170d84f3d3693f1d4ab1fc6f5e36651a8 c399c0b6da1c9cd839002d3cfe68b172318a8c03 davidsan-pro <davidsan.pro88@gmail.com> 1649413176 +0700	commit: testing
+c399c0b6da1c9cd839002d3cfe68b172318a8c03 7cbfb9a769d17143275e16c02d7031e92aa8ada0 davidsan-pro <davidsan.pro88@gmail.com> 1649423877 +0700	commit: tutup coding debug
+7cbfb9a769d17143275e16c02d7031e92aa8ada0 3cf7ef18f115955f82c6bffdf8b7cc85b0ad0990 davidsan-pro <davidsan.pro88@gmail.com> 1649423959 +0700	commit: test auto git
+3cf7ef18f115955f82c6bffdf8b7cc85b0ad0990 7cbfb9a769d17143275e16c02d7031e92aa8ada0 davidsan-pro <davidsan.pro88@gmail.com> 1649423968 +0700	reset: moving to HEAD~
+7cbfb9a769d17143275e16c02d7031e92aa8ada0 20a379fd55b80f5511c05f7e05a9310cd4fc03cc davidsan-pro <davidsan.pro88@gmail.com> 1649423972 +0700	commit: test auto sync
+20a379fd55b80f5511c05f7e05a9310cd4fc03cc af01fbe3a3b051f42ac5a6466c498c9f35c2f0e4 davidsan-pro <davidsan.pro88@gmail.com> 1649425591 +0700	commit: tambahkan item d file .gitignore
+af01fbe3a3b051f42ac5a6466c498c9f35c2f0e4 a335eb2ef116fa3dbf33749f162a1f6cba4f604f davidsan-pro <davidsan.pro88@gmail.com> 1649425607 +0700	commit: tutup coding debug
+a335eb2ef116fa3dbf33749f162a1f6cba4f604f 5d43eeddd6255c9062d3c3253dbfb90ea3865366 davidsan-pro <davidsan.pro88@gmail.com> 1649480454 +0700	commit: ubah setting mjd ke live hosting domainesia
+5d43eeddd6255c9062d3c3253dbfb90ea3865366 51e9582cd55d90905476862b714646b534b930b7 davidsan-pro <davidsan.pro88@gmail.com> 1649480532 +0700	commit: perbaiki nama class d controller mrute n drute
