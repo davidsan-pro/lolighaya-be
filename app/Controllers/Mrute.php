@@ -80,6 +80,12 @@ class Mrute extends ResourceController
         if ($qfield == 'id_rute') {
             $params[$qfield] = $qvalue;
         }
+
+        $groupBy = $this->request->getVar('gb');
+        if ($groupBy) {
+            $model->groupBy($groupBy);
+        }
+
         $data  = $model->findAllById($id, $params);
 
         if (!$data) {
