@@ -43,7 +43,12 @@ class Mrute extends ResourceController
         $qvalue = $this->request->getVar('qv'); // value yg akan dicari di field qf
         if ($qfield && $qvalue)
         {
-            $model->like('m_rute.'.$qfield, 'm_rute.'.$qvalue);
+            $qmode = $this->request->getVar('qmode');
+            if ($qmode == 'exact') {
+                $model->where('m_rute.'.$qfield, $qvalue);
+            } else {
+                $model->like('m_rute.'.$qfield, $qvalue);
+            }
         }
 
         $groupBy = $this->request->getVar('gb');
@@ -61,6 +66,11 @@ class Mrute extends ResourceController
         $model->orderBy('m_rute.nama_rute, m_rute.hari, m_rute.id');
 
         $data = $model->findAll();
+        // $asd = [
+        //     'message' => $model->db->getLastQuery()->getQuery(),
+        //     'data' => $data,
+        // ];
+        // return $this->respond($asd);
 
         return $this->respond($data);
     }

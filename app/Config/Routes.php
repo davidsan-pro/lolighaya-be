@@ -35,8 +35,8 @@ $routes->setAutoRoute(true);
 $routes->resource('users');
 $routes->resource('barang');
 $routes->resource('toko');
-$routes->resource('mrute');
-$routes->resource('drute');
+$routes->resource('Mrute');
+$routes->resource('Drute');
 
 /*
  * --------------------------------------------------------------------

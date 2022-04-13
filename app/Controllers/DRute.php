@@ -55,6 +55,7 @@ class Drute extends ResourceController
     {
         // $asd = [
         //     'status' => 0,
+        //     'get' => $this->request->getVar(),
         //     'message' => 'asdasd',
         // ];
         // return $this->respond($asd);
