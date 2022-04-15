@@ -27,11 +27,18 @@ class Mrute extends ResourceController
             ;
         $compiled = $builder->getCompiledSelect();
 
+        $builder = $db->table('d_rute');
+        $builder->select("id_rute, COUNT(id) as jum_toko")
+            ->groupBy('id_rute')
+            ;
+        $compiled_jum_toko = $builder->getCompiledSelect();
+
         $model = new MRuteModel();
 
         $data = [];
 
         $model->join('('.$compiled.') as t', 't.id_rute = m_rute.id', 'left');
+        $model->join('('.$compiled_jum_toko.') as t_det', 't_det.id_rute = m_rute.id', 'left');
 
         $searchStr = $this->request->getVar('q');
         if ($searchStr) {
