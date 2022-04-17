@@ -44,7 +44,7 @@ class DRuteModel extends Model
     public function getRuteToko($params)
     {
         $query = $this->db->table('d_rute as d')
-            ->select('d.id as key_id, d.urutan, toko.*')
+            ->select('d.id as key_id, d.urutan as urutan, toko.*')
             ->join('toko', 'toko.id = d.id_toko')
             ;
         if (!empty($params['id_rute'])) {
