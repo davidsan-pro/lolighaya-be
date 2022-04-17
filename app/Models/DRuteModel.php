@@ -14,7 +14,7 @@ class DRuteModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['id_rute', 'id_toko', 'created_at', 'updated_at'];
+    protected $allowedFields    = ['id_rute', 'urutan', 'id_toko', 'created_at', 'updated_at'];
 
     // Dates
     protected $useTimestamps = false;
