@@ -54,6 +54,18 @@ class DRuteModel extends Model
         if (!empty($params['q'])) {
             $query = $query->like('toko.nama', $params['q']);
         }
+        if (!empty($params['urutan'])) {
+            $query = $query->where('d.urutan', $params['urutan']);
+        } else {
+            $query = $query->where('d.urutan >', 0);
+        }
+
+        if (!empty($params['order_by'])) {
+            $query = $query->orderBy($params['order_by']);
+        } else {
+            $query = $query->orderBy('d.urutan ASC, d.id ASC');
+        }
+
         $query = $query->get();
         $result = $query->getResultArray();
 
