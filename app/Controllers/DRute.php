@@ -36,12 +36,12 @@ class Drute extends ResourceController
 
         $data = $model->getRuteToko($params);
 
-        $asd = [
-            'get' => $this->request->getVar(),
-            'sql' => $model->getLastQuery()->getQuery(),
-            'data' => $data,
-        ];
-        return $this->respond($asd);
+        // $asd = [
+        //     'get' => $this->request->getVar(),
+        //     'sql' => $model->getLastQuery()->getQuery(),
+        //     'data' => $data,
+        // ];
+        // return $this->respond($asd);
 
         return $this->respond($data);
     }
