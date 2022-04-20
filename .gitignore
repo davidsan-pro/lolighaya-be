@@ -1,3 +1,4 @@
 debugbar*
 writable/
 app/Config/Database.php
+.env
