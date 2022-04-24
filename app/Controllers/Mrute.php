@@ -62,7 +62,7 @@ class Mrute extends ResourceController
         if ($groupBy) {
             $model->groupBy('m_rute.'.$groupBy);
         } else {
-            $model->groupBy('m_rute.nama_rute, m_rute.hari');
+            $model->groupBy('m_rute.nama_rute, t.id_rute, t.list_kota');
         }
 
         $limit = $this->request->getVar('l');
@@ -70,14 +70,14 @@ class Mrute extends ResourceController
             $model->limit((int)$limit);
         }
 
-        $model->orderBy('m_rute.nama_rute, m_rute.hari, m_rute.id');
+        $model->orderBy('m_rute.nama_rute, m_rute.id');
 
         $data = $model->findAll();
-        // $asd = [
-        //     'message' => $model->db->getLastQuery()->getQuery(),
-        //     'data' => $data,
-        // ];
-        // return $this->respond($asd);
+        $asd = [
+            'message' => $model->db->getLastQuery()->getQuery(),
+            'data' => $data,
+        ];
+        return $this->respond($asd);
 
         return $this->respond($data);
     }
@@ -141,7 +141,7 @@ class Mrute extends ResourceController
                 'hari' => $i+1,
             ];
             foreach ($pilihHari as $key => $row) {
-                $temp['active'] = $i == (int)$row ? 1 : 0;
+                $temp['status'] = $i == (int)$row ? 1 : 0;
             }
             $data[] = $temp;
         }

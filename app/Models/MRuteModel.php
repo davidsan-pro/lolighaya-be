@@ -14,7 +14,7 @@ class MRuteModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['nama_rute', 'hari', 'status', 'created_at', 'updated_at'];
+    protected $allowedFields    = ['nama_rute', 'created_at', 'updated_at'];
 
     // Dates
     protected $useTimestamps = false;
