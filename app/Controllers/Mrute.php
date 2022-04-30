@@ -73,11 +73,11 @@ class Mrute extends ResourceController
         $model->orderBy('m_rute.nama_rute, m_rute.id');
 
         $data = $model->findAll();
-        $asd = [
-            'message' => $model->db->getLastQuery()->getQuery(),
-            'data' => $data,
-        ];
-        return $this->respond($asd);
+        // $asd = [
+        //     'message' => $model->db->getLastQuery()->getQuery(),
+        //     'data' => $data,
+        // ];
+        // return $this->respond($asd);
 
         return $this->respond($data);
     }

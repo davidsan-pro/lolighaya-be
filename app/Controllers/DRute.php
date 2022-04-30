@@ -24,7 +24,7 @@ class Drute extends ResourceController
 
         $qfield = $this->request->getVar('qf');
         $qvalue = $this->request->getVar('qv');
-        
+
         $params = [];
         if ($qfield) {
             $params[$qfield] = $qvalue;
@@ -77,16 +77,27 @@ class Drute extends ResourceController
      */
     public function create()
     {
+        $db = \Config\Database::connect();
+        // 1. dapatkan no.urut terakhir
+        $builder = $db->table('d_rute');
+        $builder->select("id_rute, id_toko, urutan")
+            ->orderBy('urutan DESC')
+            ->limit(1)
+        ;
+        $query           = $builder->get()->getResultArray();
+        $urutan_terakhir = $query[0]['urutan'];
+
         helper(['form']);
 
         $rules = [
-            'nama' => 'required',
+            'id_rute' => 'required',
+            'id_toko' => 'required',
         ];
 
         $data = [
-            'nama' => $this->request->getVar('nama'),
-            'stok' => $this->request->getVar('stok') ?: 0,
-            'foto' => $this->request->getVar('foto'),
+            'id_rute' => $this->request->getVar('id_rute'),
+            'id_toko' => $this->request->getVar('id_toko'),
+            'urutan'  => $urutan_terakhir + 1,
         ];
 
         if (!$this->validate($rules)) {
@@ -96,11 +107,14 @@ class Drute extends ResourceController
         $model = new DRuteModel();
         $model->save($data);
 
+        // setelah insert data detail rute
+        // 2. susun ulang no.urutnya
+
         $response = [
             'status'   => 201,
             'error'    => null,
             'messages' => [
-                'success' => 'Data master rute berhasil ditambahkan',
+                'success' => 'Data detail rute berhasil ditambahkan',
             ],
         ];
         return $this->respondCreated($response);

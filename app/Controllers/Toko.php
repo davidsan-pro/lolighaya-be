@@ -18,12 +18,10 @@ class toko extends ResourceController
 
     public function index()
     {
-        // $tmp = [
-        //     'status' => 0,
-        //     'message' => 'asdasdasd',
-        // ];
-        // return $this->respond($tmp);
         $model = new TokoModel();
+
+        $str = "select id_rute, id_toko from d_rute";
+        $model->join("({$str}) as d", 'd.id_toko = toko.id', 'left');
 
         $data = [];
 
@@ -31,11 +29,28 @@ class toko extends ResourceController
         if ($searchStr)
         {
             $model->groupStart()
-                            ->like('nama', $searchStr)
-                        ->groupEnd()
-                        ;
+                    ->like('toko.nama', $searchStr)
+                ->groupEnd()
+                ;
         }
+        $not_in_table = $this->request->getVar('qt_not_in');
+        if ($not_in_table == 'rute') {
+            $model->where('d.id_rute', null);
+        }
+        $not_in_field = $this->request->getVar('qf_not_in');
+        $not_in_value = $this->request->getVar('qv_not_in');
+        if ($not_in_field && $not_in_value) {
+            $model->whereNotIn($not_in_field, $not_in_value);
+        }
+
         $data = $model->findAll();
+
+        // $asd = [
+        //     'get' => $this->request->getVar(),
+        //     'sql' => $model->getLastQuery()->getQuery(),
+        //     'data' => $data,
+        // ];
+        // return $this->respond($asd);
 
         return $this->respond($data);
     }
