@@ -20,7 +20,7 @@ class toko extends ResourceController
     {
         $model = new TokoModel();
 
-        $str = "select id_rute, id_toko from d_rute";
+        $str = "select id_rute, id_toko, urutan from d_rute where urutan > 0";
         $model->join("({$str}) as d", 'd.id_toko = toko.id', 'left');
 
         $data = [];
@@ -36,6 +36,7 @@ class toko extends ResourceController
         $not_in_table = $this->request->getVar('qt_not_in');
         if ($not_in_table == 'rute') {
             $model->where('d.id_rute', null);
+            // $model->where('d.urutan >', 0);
         }
         $not_in_field = $this->request->getVar('qf_not_in');
         $not_in_value = $this->request->getVar('qv_not_in');

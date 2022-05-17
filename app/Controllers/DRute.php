@@ -184,7 +184,7 @@ class Drute extends ResourceController
             'status'   => 200,
             'error'    => null,
             'messages' => [
-                'success' => 'Data master rute berhasil dihapus',
+                'success' => 'Data detail rute berhasil dihapus',
             ],
         ];
         return $this->respond($response);
