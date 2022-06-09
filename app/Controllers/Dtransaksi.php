@@ -2,11 +2,11 @@
 
 namespace App\Controllers;
 
-use App\Models\MTransaksiModel;
+use App\Models\DTransaksiModel;
 use CodeIgniter\API\ResponseTrait;
 use CodeIgniter\RESTful\ResourceController;
 
-class Mtransaksi extends ResourceController
+class Dtransaksi extends ResourceController
 {
     /**
      * Return an array of resource objects, themselves in array format
@@ -16,7 +16,7 @@ class Mtransaksi extends ResourceController
 
     use ResponseTrait;
 
-    private $tblname = 'm_transaksi';
+    private $tblname = 'd_transaksi';
 
     public function index()
     {
@@ -35,7 +35,7 @@ class Mtransaksi extends ResourceController
         //     ;
         // $compiled_jum_toko = $builder->getCompiledSelect();
 
-        $model = new MTransaksiModel();
+        $model = new DTransaksiModel();
 
         $data = [];
 
@@ -96,7 +96,7 @@ class Mtransaksi extends ResourceController
      */
     public function show($id = null)
     {
-        $model = new MTransaksiModel();
+        $model = new DTransaksiModel();
 
         $qfield = $this->request->getVar('qf');
         $qvalue = $this->request->getVar('qv');
@@ -157,70 +157,15 @@ class Mtransaksi extends ResourceController
             return $this->fail($this->validator->getErrors());
         }
 
-        $model = new MTransaksiModel();
+        $model = new DTransaksiModel();
         $model->save($data);
-        $insertID = $model->getInsertID();
-
-        // simpan ke tabel detail
-        $details = (array)$this->request->getVar('details');
-
-        $data = [];
-        for ($i=0; $i<count($details); $i++) {
-            $details[$i] = (array)$details[$i];
-            $data[] = [
-                'id_transaksi' => $insertID,
-                'id_barang' => $details[$i]['id'],
-                'harga' => empty($details[$i]['harga']) ? 0 : $details[$i]['harga'],
-                'titip' => empty($details[$i]['jumlahTitip']) ? 0 : $details[$i]['jumlahTitip'],
-                'sisa' => empty($details[$i]['sisa']) ? 0 : $details[$i]['sisa'],
-                'laku' => empty($details[$i]['laku']) ? 0 : $details[$i]['laku'],
-            ];
-        }
-        $db = \Config\Database::connect();
-        $builder = $db->table('d_transaksi');
-        if ($data) {
-            $builder->insertBatch($data);
-        }
-
-        // sesuaikan angka sisa stok di tabel barang
-        $db = \Config\Database::connect();
-        $builder = $db->table('barang');
-
-        $whereInID = [];
-        for ($i=0; $i<count($details); $i++) {
-            $whereInID[] = $details[$i]['id'];
-        }
-        $barang = [];
-        if (!empty($whereInID)) {
-            $builder->whereIn('id', $whereInID);
-            $barang = $builder->get()->getResultArray();
-        }
-        $data = [];
-        for ($i=0; $i<count($details); $i++) {
-            $jumlahTitip = empty($details[$i]['jumlahTitip']) ? 0 : $details[$i]['jumlahTitip'];
-            $sisa = empty($details[$i]['sisa']) ? 0 : $details[$i]['sisa'];
-
-            for ($j=0; $j<count($barang); $j++) {
-                if ($details[$i]['id'] == $barang[$j]['id']) {
-                    $data[] = [
-                        'id' => $barang[$j]['id'],
-                        'stok' => $barang[$j]['stok'] - $jumlahTitip + $sisa,
-                    ];
-                }
-                // end if ($details[$i]['id'] == $barang[$j]['id']) 
-            }
-            // end for ($j=0; $j<count($barang); $j++) 
-        }
-        // end for ($i=0; $i<count($details); $i++) 
-        if ($data) {
-            $builder->updateBatch($data, 'id');
-        }
+        $insertedID = $model->getInsertID();
 
         $response = [
             'status'   => 201,
             'error'    => null,
             'messages' => [
-                'success' => 'Data transaksi berhasil ditambahkan',
+                'success' => 'Data master transaksi berhasil ditambahkan',
             ],
         ];
         return $this->respondCreated($response);
@@ -235,7 +180,7 @@ class Mtransaksi extends ResourceController
     {
         helper(['form']);
 
-        $model = new MTransaksiModel();
+        $model = new DTransaksiModel();
 
         // $rules = [
         //     'nama_rute' => 'required|is_unique[m_rute.nama_rute]',
@@ -320,7 +265,7 @@ class Mtransaksi extends ResourceController
      */
     public function delete($id = null)
     {
-        $model = new MTransaksiModel();
+        $model = new DTransaksiModel();
 
         $findById = $model->find(['id' => $id]);
 

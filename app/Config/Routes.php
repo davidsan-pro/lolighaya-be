@@ -37,6 +37,8 @@ $routes->resource('barang');
 $routes->resource('toko');
 $routes->resource('Mrute');
 $routes->resource('Drute');
+$routes->resource('Mtransaksi');
+$routes->resource('Dtransaksi');
 
 /*
  * --------------------------------------------------------------------
