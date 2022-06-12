@@ -35,20 +35,28 @@ class Mtransaksi extends ResourceController
         //     ;
         // $compiled_jum_toko = $builder->getCompiledSelect();
 
-        $model = new MTransaksiModel();
+        // $model = new MTransaksiModel();
 
+        $tbl = 'm_transaksi';
+
+        $db = \Config\Database::connect();
+        $builder = $db->table($tbl);
+        
         $data = [];
 
-        $model->join('toko', "toko.id = {$this->tblname}.id_toko", 'left');
-        $model->join('d_transaksi as d', "d.id_transaksi = {$this->tblname}.id", 'left');
-        $model->join('barang', "barang.id = d.id_barang", 'left');
+        $cols = "{$tbl}.*, toko.nama nama_toko, users.username";
+        $builder->select($cols);
+        $builder->join('toko', "toko.id = {$tbl}.id_toko", 'left');
+        $builder->join('d_transaksi as d', "d.id_transaksi = {$tbl}.id", 'left');
+        $builder->join('barang', "barang.id = d.id_barang", 'left');
+        $builder->join('users', "users.id = {$tbl}.id_user", 'left');
 
-        // $model->join('('.$compiled.') as t', 't.id_rute = m_rute.id', 'left');
-        // $model->join('('.$compiled_jum_toko.') as t_det', 't_det.id_rute = m_rute.id', 'left');
+        // $builder->join('('.$compiled.') as t', 't.id_rute = m_rute.id', 'left');
+        // $builder->join('('.$compiled_jum_toko.') as t_det', 't_det.id_rute = m_rute.id', 'left');
 
         $searchStr = $this->request->getVar('q');
         if ($searchStr) {
-            $model->groupStart()
+            $builder->groupStart()
                     ->like("toko.nama", $searchStr)
                     ->orLike("barang.nama", $searchStr)
                 ->groupEnd();
@@ -59,29 +67,36 @@ class Mtransaksi extends ResourceController
         {
             $qmode = $this->request->getVar('qmode');
             if ($qmode == 'exact') {
-                $model->where("{$this->tblname}.{$qfield}", $qvalue);
+                $builder->where("{$tbl}.{$qfield}", $qvalue);
             } else {
-                $model->like("{$this->tblname}.{$qfield}", $qvalue);
+                $builder->like("{$tbl}.{$qfield}", $qvalue);
             }
         }
 
         $groupBy = $this->request->getVar('gb');
         if ($groupBy) {
-            $model->groupBy("{$this->tblname}.{$groupBy}");
+            $builder->groupBy("{$tbl}.{$groupBy}");
         } else {
-            $model->groupBy("{$this->tblname}.id");
+            $builder->groupBy("{$tbl}.id");
         }
 
         $limit = $this->request->getVar('l');
         if ($limit) {
-            $model->limit((int)$limit);
+            $builder->limit((int)$limit);
         }
 
-        $model->orderBy("{$this->tblname}.id");
+        $orderByField = $this->request->getVar('sbf');
+        if ($orderByField) {
+            $orderByMode = $this->request->getVar('sbm');
+            $builder->orderBy("{$tbl}.{$orderByField}", $orderByMode);
+        } else {
+            $builder->orderBy("{$tbl}.id ASC");
+        }
 
-        $data = $model->findAll();
+        $data = $builder->get()->getResult();
         // $asd = [
-        //     'message' => $model->db->getLastQuery()->getQuery(),
+        //     'message' => $db->getLastQuery()->getQuery(),
+        //     'jumlah' => $builder->countAllResults(),
         //     'data' => $data,
         // ];
         // return $this->respond($asd);
