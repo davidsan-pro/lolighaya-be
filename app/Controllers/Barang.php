@@ -25,15 +25,11 @@ class Barang extends ResourceController
         $searchStr = $this->request->getVar('q');
         if ($searchStr)
         {
-            $data = $model->groupStart()
-                            ->like('nama', $searchStr)
-                        ->groupEnd()
-                        ->findAll();
+            $model->groupStart()
+                    ->like('nama', $searchStr)
+                ->groupEnd();
         }
-        else
-        {
-            $data = $model->findAll();
-        }
+        $data = $model->findAll();
 
         return $this->respond($data);
     }
