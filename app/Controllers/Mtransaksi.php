@@ -3,6 +3,8 @@
 namespace App\Controllers;
 
 use App\Models\MTransaksiModel;
+use App\Models\DTransaksiModel;
+use App\Models\BarangModel;
 use CodeIgniter\API\ResponseTrait;
 use CodeIgniter\RESTful\ResourceController;
 
@@ -186,7 +188,7 @@ class Mtransaksi extends ResourceController
                 'id_transaksi' => $insertID,
                 'id_barang' => $details[$i]['id'],
                 'harga' => empty($details[$i]['harga']) ? 0 : $details[$i]['harga'],
-                'titip' => empty($details[$i]['jumlahTitip']) ? 0 : $details[$i]['jumlahTitip'],
+                'titip' => empty($details[$i]['titip']) ? 0 : $details[$i]['titip'],
                 'sisa' => empty($details[$i]['sisa']) ? 0 : $details[$i]['sisa'],
                 'laku' => empty($details[$i]['laku']) ? 0 : $details[$i]['laku'],
             ];

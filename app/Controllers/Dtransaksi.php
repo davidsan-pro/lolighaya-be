@@ -35,20 +35,29 @@ class Dtransaksi extends ResourceController
         //     ;
         // $compiled_jum_toko = $builder->getCompiledSelect();
 
-        $model = new DTransaksiModel();
+        // $model = new DTransaksiModel();
 
         $data = [];
+        $tbl = $this->tblname;
 
-        $model->join('toko', "toko.id = {$this->tblname}.id_toko", 'left');
-        $model->join('d_transaksi as d', "d.id_transaksi = {$this->tblname}.id", 'left');
-        $model->join('barang', "barang.id = d.id_barang", 'left');
+        $db = \Config\Database::connect();
+        $builder = $db->table($tbl);
+
+        $cols = "{$tbl}.*, m.id_toko, m.id_user, m.jenis_transaksi"
+            . ", barang.nama nama_barang"
+            . ", toko.nama nama_toko, users.username";
+        $builder->select($cols);
+        $builder->join('m_transaksi m', "m.id = {$tbl}.id_transaksi");
+        $builder->join('barang', "barang.id = {$tbl}.id_barang", 'left');
+        $builder->join('toko', "toko.id = m.id_toko", 'left');
+        $builder->join('users', "users.id = m.id_user", 'left');
 
         // $model->join('('.$compiled.') as t', 't.id_rute = m_rute.id', 'left');
         // $model->join('('.$compiled_jum_toko.') as t_det', 't_det.id_rute = m_rute.id', 'left');
 
         $searchStr = $this->request->getVar('q');
         if ($searchStr) {
-            $model->groupStart()
+            $builder->groupStart()
                     ->like("toko.nama", $searchStr)
                     ->orLike("barang.nama", $searchStr)
                 ->groupEnd();
@@ -59,29 +68,29 @@ class Dtransaksi extends ResourceController
         {
             $qmode = $this->request->getVar('qmode');
             if ($qmode == 'exact') {
-                $model->where("{$this->tblname}.{$qfield}", $qvalue);
+                $builder->where("{$tbl}.{$qfield}", $qvalue);
             } else {
-                $model->like("{$this->tblname}.{$qfield}", $qvalue);
+                $builder->like("{$tbl}.{$qfield}", $qvalue);
             }
         }
 
         $groupBy = $this->request->getVar('gb');
         if ($groupBy) {
-            $model->groupBy("{$this->tblname}.{$groupBy}");
+            $builder->groupBy("{$tbl}.{$groupBy}");
         } else {
-            $model->groupBy("{$this->tblname}.id");
+            $builder->groupBy("{$tbl}.id");
         }
 
         $limit = $this->request->getVar('l');
         if ($limit) {
-            $model->limit((int)$limit);
+            $builder->limit((int)$limit);
         }
 
-        $model->orderBy("{$this->tblname}.id");
+        $builder->orderBy("{$this->tblname}.id");
 
-        $data = $model->findAll();
+        $data = $builder->get()->getResult();
         // $asd = [
-        //     'message' => $model->db->getLastQuery()->getQuery(),
+        //     'message' => $db->getLastQuery()->getQuery(),
         //     'data' => $data,
         // ];
         // return $this->respond($asd);

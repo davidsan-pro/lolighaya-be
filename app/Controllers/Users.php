@@ -16,26 +16,41 @@ class Users extends ResourceController
 
     use ResponseTrait;
 
+    private $tblname = 'users';
+
     public function index()
     {
-        $model = new UserModel();
+        // $model = new UserModel();
+        $db = \Config\Database::connect();
+        $builder = $db->table($this->tblname);
 
         $data = [];
 
         $searchStr = $this->request->getVar('q');
         if ($searchStr)
         {
-            $data = $model->groupStart()
-                            ->like('username', $searchStr)
-                            ->orLike('nama', $searchStr)
-                        ->groupEnd()
-                        ->findAll();
+            $builder->groupStart()
+                    ->like('username', $searchStr)
+                    ->orLike('nama', $searchStr)
+                ->groupEnd()
+                ;
         }
-        else
+
+        $qfield = $this->request->getVar('qf'); // field yg akan difilter. cth: nama_rute
+        $qvalue = $this->request->getVar('qv'); // value yg akan dicari di field qf
+        if ($qfield && $qvalue)
         {
-            $data = $model->findAll();
+            $qmode = $this->request->getVar('qmode');
+            if ($qmode == 'exact') {
+                $builder->where("{$this->tblname}.{$qfield}", $qvalue);
+            } else {
+                $builder->like("{$this->tblname}.{$qfield}", $qvalue);
+            }
         }
-        
+
+        // $data = $model->findAll();
+        $data = $builder->get()->getResult();
+
         return $this->respond($data);
     }
 
@@ -170,6 +185,51 @@ class Users extends ResourceController
             'messages' => [
                 'success' => 'Data user berhasil dihapus'
             ]
+        ];
+        return $this->respond($response);
+    }
+    
+    public function login()
+    {
+        helper(['form']);
+
+        $rules = [
+            'username' => 'required',
+            'password' => 'required',
+        ];
+        if ( ! $this->validate($rules)) {
+            return $this->fail($this->validator->getErrors());
+        }
+        
+        $username = $this->request->getVar('username');
+        $password = $this->request->getVar('password');
+
+        // check if the username is in the `users` table
+        $tbl = $this->tblname;
+        $db = \Config\Database::connect();
+        $builder = $db->table($this->tblname);
+        $q = $builder->select("{$tbl}.id, {$tbl}.username, {$tbl}.email, {$tbl}.telepon, {$tbl}.nama, {$tbl}.foto")
+                ->where('username', $username)
+                ->where('password', $password)
+                ->get()
+                ;
+        $cek = $q->getRow();
+        if (empty($cek)) {
+            return $this->failNotFound('Data not found');
+        }
+        
+        $status = !empty($cek) ? 201 : 403;
+        $message = $status 
+            ? "Login berhasil. Selamat datang kembali, {$this->request->getVar('username')}."
+            : "Login gagal."
+            ;
+        
+        $response = [
+            'status' => $status,
+            'id' => $cek->id ? : null,
+            'data' => $cek,
+            'sql' => $db->getLastQuery()->getQuery(),
+            'message' => $message,
         ];
         return $this->respond($response);
     }
