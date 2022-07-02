@@ -131,7 +131,7 @@ class Users extends ResourceController
 
         $data = [
             'username' => $this->request->getVar('username'),
-            'password' => $this->request->getVar('password'),
+            'password' => password_hash($this->request->getVar('password'), PASSWORD_DEFAULT),
             'profile_pic' => $this->request->getVar('profile_pic') ? : '',
             'nama' => $this->request->getVar('nama'),
             'email' => $this->request->getVar('email'),
@@ -208,27 +208,32 @@ class Users extends ResourceController
         $tbl = $this->tblname;
         $db = \Config\Database::connect();
         $builder = $db->table($this->tblname);
-        $q = $builder->select("{$tbl}.id, {$tbl}.username, {$tbl}.email, {$tbl}.telepon, {$tbl}.nama, {$tbl}.foto")
+        $q = $builder->select("{$tbl}.id, {$tbl}.username, {$tbl}.password, {$tbl}.email, {$tbl}.telepon, {$tbl}.nama, {$tbl}.foto")
                 ->where('username', $username)
-                ->where('password', $password)
                 ->get()
                 ;
         $cek = $q->getRow();
+        $sql = $db->getLastQuery()->getQuery();
         if (empty($cek)) {
-            return $this->failNotFound('Data not found');
+            return $this->failNotFound('Data not found;'.$sql);
         }
         
-        $status = !empty($cek) ? 201 : 403;
-        $message = $status 
-            ? "Login berhasil. Selamat datang kembali, {$this->request->getVar('username')}."
-            : "Login gagal."
-            ;
-        
+        $status = 200;
+        $message = '';
+        if (password_verify($password, $cek->password)) {
+            $status = 201;
+            $message = "Login berhasil. Selamat datang kembali, {$username}";
+        } else {
+            $status = 403;
+            $message ="Username atau password salah";
+        }
+
         $response = [
             'status' => $status,
             'id' => $cek->id ? : null,
             'data' => $cek,
-            'sql' => $db->getLastQuery()->getQuery(),
+            // 'sql' => $db->getLastQuery()->getQuery(),
+            // 'hash' => password_hash($password, PASSWORD_DEFAULT),
             'message' => $message,
         ];
         return $this->respond($response);
