@@ -14,7 +14,7 @@ class TokoModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['alamat', 'foto', 'kecamatan', 'kota', 'nama', 'telepon', 'created_at', 'updated_at'];
+    protected $allowedFields    = ['alamat', 'foto', 'kecamatan', 'kota', 'nama', 'telepon', 'status', 'updated_by_user_id', 'created_at', 'updated_at'];
 
     // Dates
     protected $useTimestamps = false;

@@ -47,10 +47,17 @@ class DRuteModel extends Model
             ->select('d.id as key_id, d.urutan as urutan, toko.*')
             ->join('toko', 'toko.id = d.id_toko')
             ;
-        if (!empty($params['id_rute'])) {
-            // $params['id_rute'] = $this->db->escape($params['id_rute']);
-            $query = $query->where('d.id_rute', $params['id_rute']);
+        $qf = !empty($params['qf']) ? (array)$params['qf'] : [];
+        $qv = !empty($params['qv']) ? (array)$params['qv'] : [];
+        foreach ($qf as $i => $rowf) {
+            if ($qf[$i] == 'id_rute') {
+                $query = $query->where('d.id_rute', $qv[$i]);
+            }
         }
+        // if (!empty($params['id_rute'])) {
+        //     // $params['id_rute'] = $this->db->escape($params['id_rute']);
+        //     $query = $query->where('d.id_rute', $params['id_rute']);
+        // }
         if (!empty($params['q'])) {
             $query = $query->like('toko.nama', $params['q']);
         }
@@ -65,9 +72,17 @@ class DRuteModel extends Model
         } else {
             $query = $query->orderBy('d.urutan ASC, d.id ASC');
         }
+        
+        $query = $query->groupBy('d.id_rute, d.id_toko');
 
         $query = $query->get();
-        $result = $query->getResultArray();
+        $result = [
+            'data' => $query->getResultArray(),
+            'sql' => $this->db->getLastQuery()->getQuery(),
+            'params' => $params,
+            'qf' => $qf,
+            'qv' => $qv,
+        ];
 
         return $result;
     }

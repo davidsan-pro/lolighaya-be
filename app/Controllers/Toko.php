@@ -18,6 +18,8 @@ class toko extends ResourceController
 
     public function index()
     {
+        $db = \Config\Database::connect();
+
         $model = new TokoModel();
 
         $str = "select id_rute, id_toko, urutan from d_rute where urutan > 0";
@@ -38,13 +40,45 @@ class toko extends ResourceController
             $model->where('d.id_rute', null);
             // $model->where('d.urutan >', 0);
         }
-        $not_in_field = $this->request->getVar('qf_not_in');
-        $not_in_value = $this->request->getVar('qv_not_in');
-        if ($not_in_field && $not_in_value) {
-            $model->whereNotIn($not_in_field, $not_in_value);
+        $not_in_field = (array)$this->request->getVar('qf_not_in');
+        $not_in_value = (array)$this->request->getVar('qv_not_in');
+
+        $sql = [];
+        for ($i=0; $i<count($not_in_field); $i++) {
+            if ($not_in_field[$i] === 'id_rute') {
+                $subQuery = $db->table('d_rute')
+                    ->select('id_toko')
+                    ->where('id_rute', $not_in_value[$i])
+                    ->groupBy('id_toko')
+                    ->get()->getResultArray();
+                $sql[] = $db->getLastQuery()->getQuery();
+                // $asd1 .= ';countsubquery='.count($subQuery);
+                foreach ($subQuery as $x => $rowx) {
+                    $model->where('toko.id !=', $rowx['id_toko']);
+                }
+                // if (count($subQuery)) {
+                //     for ($x=0; $x<count($subQuery); $x++) {
+                //         $arr[] = $subQuery[$x]['id_toko'];
+                //     }
+                //     $model->where('toko.id', 1);
+                // }
+            }
         }
+        // if ($not_in_field && $not_in_value) {
+        //     $model->whereNotIn($not_in_field, $not_in_value);
+        // }
+        
+        $model->groupBy('toko.id');
 
         $data = $model->findAll();
+        $sql[] = $model->getLastQuery()->getQuery();
+        $result = [
+            'data' => $data,
+            'sql' => $sql,
+            // 'sub' => $subQuery,
+            // 'asd1' => json_decode($subQuery),
+            'asd2' => $not_in_value,
+        ];
 
         // $asd = [
         //     'get' => $this->request->getVar(),
@@ -53,7 +87,7 @@ class toko extends ResourceController
         // ];
         // return $this->respond($asd);
 
-        return $this->respond($data);
+        return $this->respond($result);
     }
 
     /**

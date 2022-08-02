@@ -17,7 +17,7 @@ class Users extends ResourceController
     use ResponseTrait;
 
     private $tblname = 'users';
-
+    
     public function index()
     {
         // $model = new UserModel();
@@ -88,20 +88,21 @@ class Users extends ResourceController
             'telepon' => 'required',
         ];
 
+        if ( ! $this->validate($rules)) {
+            return $this->fail($this->validator->getErrors());
+        }
+
+        $model = new UserModel();
+
         $data = [
             'username' => $this->request->getVar('username'),
-            'password' => $this->request->getVar('password'),
+            'password' => password_hash($this->request->getVar('password'), PASSWORD_DEFAULT),
             'profile_pic' => $this->request->getVar('profile_pic') ? : '',
             'nama' => $this->request->getVar('nama'),
             'email' => $this->request->getVar('email'),
             'telepon' => $this->request->getVar('telepon'),
         ];
 
-        if ( ! $this->validate($rules)) {
-            return $this->fail($this->validator->getErrors());
-        }
-
-        $model = new UserModel();
         $model->save($data);
 
         $response = [
@@ -128,15 +129,9 @@ class Users extends ResourceController
             'password' => 'required',
             'nama' => 'required',
         ];
-
-        $data = [
-            'username' => $this->request->getVar('username'),
-            'password' => password_hash($this->request->getVar('password'), PASSWORD_DEFAULT),
-            'profile_pic' => $this->request->getVar('profile_pic') ? : '',
-            'nama' => $this->request->getVar('nama'),
-            'email' => $this->request->getVar('email'),
-            'telepon' => $this->request->getVar('telepon'),
-        ];
+        if ($this->request->getVar('new_password')) {
+            $rules['conf_new_password'] = 'required|matches[new_password]';
+        }
 
         if ( ! $this->validate($rules)) {
             return $this->fail($this->validator->getErrors());
@@ -148,6 +143,18 @@ class Users extends ResourceController
 
         if ( ! $findById) {
             return $this->failNotFound('Data not found');
+        }
+
+        $data = [
+            'username' => $this->request->getVar('username'),
+            // 'password' => password_hash($this->request->getVar('password'), PASSWORD_DEFAULT),
+            'profile_pic' => $this->request->getVar('profile_pic') ? : '',
+            'nama' => $this->request->getVar('nama'),
+            'email' => $this->request->getVar('email'),
+            'telepon' => $this->request->getVar('telepon'),
+        ];
+        if ($this->request->getVar('new_password')) {
+            $data['password'] = password_hash($this->request->getVar('new_password'), PASSWORD_DEFAULT);
         }
 
         $model->update($id, $data);
@@ -208,14 +215,14 @@ class Users extends ResourceController
         $tbl = $this->tblname;
         $db = \Config\Database::connect();
         $builder = $db->table($this->tblname);
-        $q = $builder->select("{$tbl}.id, {$tbl}.username, {$tbl}.password, {$tbl}.email, {$tbl}.telepon, {$tbl}.nama, {$tbl}.foto")
+        $q = $builder->select("{$tbl}.id, {$tbl}.level, {$tbl}.username, {$tbl}.password, {$tbl}.email, {$tbl}.telepon, {$tbl}.nama, {$tbl}.foto")
                 ->where('username', $username)
                 ->get()
                 ;
         $cek = $q->getRow();
         $sql = $db->getLastQuery()->getQuery();
         if (empty($cek)) {
-            return $this->failNotFound('Data not found;'.$sql);
+            return $this->failNotFound('Data not found');
         }
         
         $status = 200;

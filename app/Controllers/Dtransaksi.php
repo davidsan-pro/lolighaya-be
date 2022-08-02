@@ -62,21 +62,51 @@ class Dtransaksi extends ResourceController
                     ->orLike("barang.nama", $searchStr)
                 ->groupEnd();
         }
-        $qfield = $this->request->getVar('qf'); // field yg akan difilter. cth: nama_rute
-        $qvalue = $this->request->getVar('qv'); // value yg akan dicari di field qf
-        if ($qfield && $qvalue)
+
+        $qfield = (array)$this->request->getVar('qf'); // field yg akan difilter. cth: nama_rute
+        $qvalue = (array)$this->request->getVar('qv'); // value yg akan dicari di field qf
+
+        foreach ($qfield as $i => $qf)
         {
-            $qmode = $this->request->getVar('qmode');
-            if ($qmode == 'exact') {
-                $builder->where("{$tbl}.{$qfield}", $qvalue);
-            } else {
-                $builder->like("{$tbl}.{$qfield}", $qvalue);
+            if (!empty($qfield[$i]) && !empty($qvalue[$i])) {
+                $qmode = $this->request->getVar('qmode');
+                if ($qfield[$i] == 'username') {
+                    if ($qmode == 'exact') {
+                        $builder->where('users.username', $qvalue[$i]);
+                    } else {
+                        $builder->like('users.username', $qvalue[$i]);
+                    }
+                } else if ($qfield[$i] == 'id_toko') {
+                    $builder->where('toko.id', $qvalue[$i]);
+                } else {
+                    if ($qmode == 'exact') {
+                        $builder->where("{$tbl}.{$qfield[$i]}", $qvalue[$i]);
+                    } else {
+                        $builder->like("{$tbl}.{$qfield[$i]}", $qvalue[$i]);
+                    }
+                }
             }
         }
+        // end foreach ($qfield as $i => $qf)
+        
+        // $qfield = $this->request->getVar('qf'); // field yg akan difilter. cth: nama_rute
+        // $qvalue = $this->request->getVar('qv'); // value yg akan dicari di field qf
+        // if ($qfield && $qvalue)
+        // {
+        //     $qmode = $this->request->getVar('qmode');
+        //     if ($qmode == 'exact') {
+        //         $builder->where("{$tbl}.{$qfield}", $qvalue);
+        //     } else {
+        //         $builder->like("{$tbl}.{$qfield}", $qvalue);
+        //     }
+        // }
 
-        $groupBy = $this->request->getVar('gb');
-        if ($groupBy) {
-            $builder->groupBy("{$tbl}.{$groupBy}");
+        $gb = (array)$this->request->getVar('gb'); // group by
+        if ($gb) {
+            foreach ($gb as $i => $rowgb)
+            {
+                $builder->groupBy("{$tbl}.{$rowgb}");
+            }
         } else {
             $builder->groupBy("{$tbl}.id");
         }
@@ -86,7 +116,16 @@ class Dtransaksi extends ResourceController
             $builder->limit((int)$limit);
         }
 
-        $builder->orderBy("{$this->tblname}.id");
+        $sbf = (array)$this->request->getVar('sb_field'); // sort by field key
+        $sbm = (array)$this->request->getVar('sb_mode'); // sort by field mode
+        if ($sbf && $sbm) {
+            foreach ($sbf as $i => $rowsb)
+            {
+                $builder->orderBy("{$tbl}.{$rowsb}", $sbm[$i]);
+            }
+        } else {
+            $builder->orderBy("{$tbl}.id");
+        }
 
         $data = $builder->get()->getResult();
         // $asd = [
