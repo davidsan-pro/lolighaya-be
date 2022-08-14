@@ -46,7 +46,9 @@ class Mtransaksi extends ResourceController
         
         $data = [];
 
-        $cols = "{$tbl}.*, toko.nama nama_toko, users.username";
+        $cols = "{$tbl}.*, toko.nama nama_toko, users.username"
+            . ", (select count(id_barang) from d_transaksi where id_transaksi = {$tbl}.id group by id_transaksi) as jum_jenis_brg"
+            ;
         $builder->select($cols);
         $builder->join('toko', "toko.id = {$tbl}.id_toko", 'left');
         $builder->join('d_transaksi as d', "d.id_transaksi = {$tbl}.id", 'left');
@@ -63,21 +65,44 @@ class Mtransaksi extends ResourceController
                     ->orLike("barang.nama", $searchStr)
                 ->groupEnd();
         }
-        $qfield = $this->request->getVar('qf'); // field yg akan difilter. cth: nama_rute
-        $qvalue = $this->request->getVar('qv'); // value yg akan dicari di field qf
-        if ($qfield && $qvalue)
+
+        $qfield = (array)$this->request->getVar('qf'); // field yg akan difilter. cth: nama_rute
+        $qvalue = (array)$this->request->getVar('qv'); // value yg akan dicari di field qf
+        $qmode = (array)$this->request->getVar('qmode');
+        foreach ($qfield as $i => $qf)
         {
-            $qmode = $this->request->getVar('qmode');
-            if ($qmode == 'exact') {
-                $builder->where("{$tbl}.{$qfield}", $qvalue);
+            if (empty($qfield[$i]) || empty($qvalue[$i])) {
+                continue;
+            }
+
+            if ($qfield[$i] == 'start_date') {
+                $builder->where("{$tbl}.updated_at >=", $qvalue[$i]);
+            } else if ($qfield[$i] == 'end_date') {
+                $builder->where("{$tbl}.updated_at <=", $qvalue[$i]);
+            } else if ($qfield[$i] == 'id_toko') {
+                $builder->where("toko.id", $qvalue[$i]);
+            } else if ($qfield[$i] == 'username') {
+                if ($qmode[$i] == 'exact') {
+                    $builder->where('users.username', $qvalue[$i]);
+                } else {
+                    $builder->like('users.username', $qvalue[$i]);
+                }
             } else {
-                $builder->like("{$tbl}.{$qfield}", $qvalue);
+                if ($qmode[$i] == 'exact') {
+                    $builder->where("{$tbl}.{$qfield[$i]}", $qvalue[$i]);
+                } else {
+                    $builder->like("{$tbl}.{$qfield[$i]}", $qvalue[$i]);
+                }
             }
         }
+        // end foreach ($qfield as $i => $qf)
 
-        $groupBy = $this->request->getVar('gb');
+        $groupBy = (array)$this->request->getVar('gb');
         if ($groupBy) {
-            $builder->groupBy("{$tbl}.{$groupBy}");
+            foreach ($groupBy as $i => $rowgb)
+            {
+                $builder->groupBy("{$tbl}.{$rowgb}");
+            }
         } else {
             $builder->groupBy("{$tbl}.id");
         }
@@ -87,21 +112,29 @@ class Mtransaksi extends ResourceController
             $builder->limit((int)$limit);
         }
 
-        $orderByField = $this->request->getVar('sbf');
-        if ($orderByField) {
-            $orderByMode = $this->request->getVar('sbm');
-            $builder->orderBy("{$tbl}.{$orderByField}", $orderByMode);
+        $orderByField = (array)$this->request->getVar('sbf');
+        $orderByMode = (array)$this->request->getVar('sbm');
+        if ($orderByField && $orderByMode) {
+            foreach ($orderByField as $i => $rowOrder)
+            {
+                $builder->orderBy("{$tbl}.{$rowOrder}", $orderByMode[$i]);
+            }
         } else {
             $builder->orderBy("{$tbl}.id ASC");
         }
 
-        $data = $builder->get()->getResult();
+        // $data = $builder->get();
         // $asd = [
-        //     'message' => $db->getLastQuery()->getQuery(),
-        //     'jumlah' => $builder->countAllResults(),
-        //     'data' => $data,
+        //     'message' => 'test',
+        //     // 'jumlah' => $builder->countAllResults(),
+        //     // 'data' => $data,
+        //     'asd' => $this->request->getVar('asd'),
+        //     // 'qs' => $this->request->getVar(),
+        //     // 'tmp' => $qfield,
         // ];
         // return $this->respond($asd);
+
+        $data = $builder->get()->getResult();
 
         return $this->respond($data);
     }
@@ -113,35 +146,124 @@ class Mtransaksi extends ResourceController
      */
     public function show($id = null)
     {
-        $model = new MTransaksiModel();
+        // $model = new MTransaksiModel();
 
-        $qfield = $this->request->getVar('qf');
-        $qvalue = $this->request->getVar('qv');
-        $params = [];
-        if ($qfield == 'id_rute') {
-            $params[$qfield] = $qvalue;
+        // $qfield = $this->request->getVar('qf');
+        // $qvalue = $this->request->getVar('qv');
+        // $params = [];
+        // if ($qfield == 'id_rute') {
+        //     $params[$qfield] = $qvalue;
+        // }
+
+        // $groupBy = $this->request->getVar('gb');
+        // if ($groupBy) {
+        //     $model->groupBy($groupBy);
+        // }
+
+        // $data  = $model->findById($id, $params);
+
+        if (!$id) {
+            $this->fail('Parameter ID tidak boleh kosong');
+        }
+        
+        $tbl = 'm_transaksi';
+
+        $db = \Config\Database::connect();
+        $builder = $db->table($tbl);
+        
+        $data = [];
+
+        $cols = "{$tbl}.*, toko.nama nama_toko, users.username"
+            . ", (select count(id_barang) from d_transaksi where id_transaksi = {$tbl}.id group by id_transaksi) as jum_jenis_brg"
+            ;
+        $builder->select($cols);
+        $builder->join('toko', "toko.id = {$tbl}.id_toko", 'left');
+        $builder->join('d_transaksi as d', "d.id_transaksi = {$tbl}.id", 'left');
+        $builder->join('barang', "barang.id = d.id_barang", 'left');
+        $builder->join('users', "users.id = {$tbl}.id_user", 'left');
+        $builder->where("{$tbl}.id", $id);
+
+        $searchStr = $this->request->getVar('q');
+        if ($searchStr) {
+            $builder->groupStart()
+                    ->like("toko.nama", $searchStr)
+                    ->orLike("barang.nama", $searchStr)
+                ->groupEnd();
         }
 
-        $groupBy = $this->request->getVar('gb');
+        $qfield = (array)$this->request->getVar('qf'); // field yg akan difilter. cth: nama_rute
+        $qvalue = (array)$this->request->getVar('qv'); // value yg akan dicari di field qf
+        $qmode = (array)$this->request->getVar('qmode');
+        foreach ($qfield as $i => $qf)
+        {
+            if (empty($qfield[$i]) || empty($qvalue[$i])) {
+                continue;
+            }
+
+            if ($qfield[$i] == 'start_date') {
+                $builder->where("{$tbl}.updated_at >=", $qvalue[$i]);
+            } else if ($qfield[$i] == 'end_date') {
+                $builder->where("{$tbl}.updated_at <=", $qvalue[$i]);
+            } else if ($qfield[$i] == 'id_toko') {
+                $builder->where("toko.id", $qvalue[$i]);
+            } else if ($qfield[$i] == 'username') {
+                if ($qmode[$i] == 'exact') {
+                    $builder->where('users.username', $qvalue[$i]);
+                } else {
+                    $builder->like('users.username', $qvalue[$i]);
+                }
+            } else {
+                if ($qmode[$i] == 'exact') {
+                    $builder->where("{$tbl}.{$qfield[$i]}", $qvalue[$i]);
+                } else {
+                    $builder->like("{$tbl}.{$qfield[$i]}", $qvalue[$i]);
+                }
+            }
+        }
+        // end foreach ($qfield as $i => $qf)
+
+        $groupBy = (array)$this->request->getVar('gb');
         if ($groupBy) {
-            $model->groupBy($groupBy);
+            foreach ($groupBy as $i => $rowgb)
+            {
+                $builder->groupBy("{$tbl}.{$rowgb}");
+            }
+        } else {
+            $builder->groupBy("{$tbl}.id");
         }
 
-        $data  = $model->findAllById($id, $params);
-
-        if (!$data) {
-            return $this->failNotFound('Data not found');
+        $limit = $this->request->getVar('l');
+        if ($limit) {
+            $builder->limit((int)$limit);
         }
+
+        $orderByField = (array)$this->request->getVar('sbf');
+        $orderByMode = (array)$this->request->getVar('sbm');
+        if ($orderByField && $orderByMode) {
+            foreach ($orderByField as $i => $rowOrder)
+            {
+                $builder->orderBy("{$tbl}.{$rowOrder}", $orderByMode[$i]);
+            }
+        } else {
+            $builder->orderBy("{$tbl}.id ASC");
+        }
+
+        $data = $builder->get()->getResult();
+        
+        // if (!$data) {
+        //     return $this->failNotFound('Data not found');
+        // }
         // $asd = [
         //     'status' => 0,
-        //     'message' => $model->db->getLastQuery()->getQuery(),
-        //     'data' => $data
+        //     'message' => $db->getLastQuery()->getQuery(),
+        //     'data' => $data,
         // ];
         // return $this->respond($asd);
 
         return $this->respond($data);
     }
-
+    // end public function show
+    
     /**
      * Create a new resource object, from "posted" parameters
      *
@@ -162,13 +284,6 @@ class Mtransaksi extends ResourceController
             'id_user' => $this->request->getVar('id_user'),
             'nilai_transaksi' => $this->request->getVar('nilai_transaksi'),
         ];
-
-        // $response = [
-        //     'status' => 201,
-        //     'message' => 'test',
-        //     'data' => $data,
-        // ];
-        // return $this->respond($response);
 
         if (!$this->validate($rules)) {
             return $this->fail($this->validator->getErrors());

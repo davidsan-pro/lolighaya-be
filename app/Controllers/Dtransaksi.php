@@ -43,7 +43,7 @@ class Dtransaksi extends ResourceController
         $db = \Config\Database::connect();
         $builder = $db->table($tbl);
 
-        $cols = "{$tbl}.*, m.id_toko, m.id_user, m.jenis_transaksi"
+        $cols = "{$tbl}.*, m.id_toko, m.id_user"
             . ", barang.nama nama_barang"
             . ", toko.nama nama_toko, users.username";
         $builder->select($cols);
@@ -69,7 +69,7 @@ class Dtransaksi extends ResourceController
         foreach ($qfield as $i => $qf)
         {
             if (!empty($qfield[$i]) && !empty($qvalue[$i])) {
-                $qmode = $this->request->getVar('qmode');
+                $qmode = (array)$this->request->getVar('qmode');
                 if ($qfield[$i] == 'username') {
                     if ($qmode == 'exact') {
                         $builder->where('users.username', $qvalue[$i]);
@@ -79,7 +79,7 @@ class Dtransaksi extends ResourceController
                 } else if ($qfield[$i] == 'id_toko') {
                     $builder->where('toko.id', $qvalue[$i]);
                 } else {
-                    if ($qmode == 'exact') {
+                    if ($qmode[$i] == 'exact') {
                         $builder->where("{$tbl}.{$qfield[$i]}", $qvalue[$i]);
                     } else {
                         $builder->like("{$tbl}.{$qfield[$i]}", $qvalue[$i]);

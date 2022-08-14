@@ -5,6 +5,7 @@ namespace App\Controllers;
 use CodeIgniter\RESTful\ResourceController;
 use CodeIgniter\API\ResponseTrait;
 use App\Models\UserModel;
+use App\Libraries\Utils;
 
 class Users extends ResourceController
 {
@@ -122,50 +123,28 @@ class Users extends ResourceController
      */
     public function update($id = null)
     {
-        helper(['form']);
-
-        $rules = [
-            'username' => 'required',
-            'password' => 'required',
-            'nama' => 'required',
-        ];
-        if ($this->request->getVar('new_password')) {
-            $rules['conf_new_password'] = 'required|matches[new_password]';
-        }
-
-        if ( ! $this->validate($rules)) {
-            return $this->fail($this->validator->getErrors());
-        }
+        $result = [];
         
-        $model = new UserModel();
-
-        $findById = $model->find(['id' => $id]);
-
-        if ( ! $findById) {
-            return $this->failNotFound('Data not found');
+        $action = $this->request->getVar('action');
+        if ($action == 'reset_password') {
+            $result = $this->do_reset_password();
+        } else {
+            $result = $this->do_update($id);
         }
 
-        $data = [
-            'username' => $this->request->getVar('username'),
-            // 'password' => password_hash($this->request->getVar('password'), PASSWORD_DEFAULT),
-            'profile_pic' => $this->request->getVar('profile_pic') ? : '',
-            'nama' => $this->request->getVar('nama'),
-            'email' => $this->request->getVar('email'),
-            'telepon' => $this->request->getVar('telepon'),
-        ];
-        if ($this->request->getVar('new_password')) {
-            $data['password'] = password_hash($this->request->getVar('new_password'), PASSWORD_DEFAULT);
+        $message = "Data user berhasil diupdate";
+        if ($action == 'reset_password') {
+            $message = "Password telah berhasil diubah";
         }
-
-        $model->update($id, $data);
-
         $response = [
-            'status' => 200,
+            'status' => 204,
             'error' => null,
+            'data' => $this->request->getVar(),
             'messages' => [
-                'success' => 'Data user berhasil diupdate'
+                'success' => $message
             ]
         ];
+        
         return $this->respond($response);
     }
 
@@ -245,4 +224,134 @@ class Users extends ResourceController
         ];
         return $this->respond($response);
     }
+    // end public function login
+
+    public function do_update($id)
+    {
+        helper(['form']);
+        $formdata = (array)$this->request->getVar();
+        
+        $rules = [
+            'username' => 'required',
+            'password' => 'required',
+            'nama' => 'required',
+            'email' => 'required',
+            'telepon' => 'required',
+        ];
+        if ($formdata['new_password']) {
+            $rules['conf_new_password'] = 'required|matches[new_password]';
+        }
+
+        if ( ! $this->validate($rules)) {
+            return $this->fail($this->validator->getErrors());
+        }
+
+        // check if the username is in the `users` table
+        $tbl = $this->tblname;
+        $db = \Config\Database::connect();
+        $builder = $db->table($this->tblname);
+        $q = $builder->select("{$tbl}.id, {$tbl}.password")
+                ->where('id', $id)
+                ->get()
+                ;
+        $cek = $q->getRow();
+        $sql = $db->getLastQuery()->getQuery();
+        if (empty($cek)) {
+            return $this->failNotFound('Data not found');
+        }
+        
+        // pastikan bahwa password yg diinputkan sudah sesuai
+        if ( ! password_verify($formdata['password'], $cek->password)) {
+            return $this->fail("Username atau password salah");
+        }
+        
+        $model = new UserModel();
+
+        $findById = $model->find(['id' => $id]);
+
+        if ( ! $findById) {
+            return $this->failNotFound('Data not found');
+        }
+
+        $data = [
+            'username' => $formdata['username'],
+            // 'password' => password_hash($this->request->getVar('password'), PASSWORD_DEFAULT),
+            'profile_pic' => $formdata['profile_pic'] ? : '',
+            'nama' => $formdata['nama'],
+            'email' => $formdata['email'],
+            'telepon' => $formdata['telepon'],
+        ];
+        if ($formdata['new_password']) {
+            $data['password'] = password_hash($formdata['new_password'], PASSWORD_DEFAULT);
+        }
+
+        $model->update($id, $data);
+    }
+    // end public function do_update
+    
+    public function do_reset_password()
+    {
+        $utils = new Utils();
+        helper(['form']);
+
+        $rules = [
+            'username' => 'required',
+            'email' => 'required',
+        ];
+        if ( ! $this->validate($rules)) {
+            return $this->fail($this->validator->getErrors());
+        }
+
+        $formdata = (array)$this->request->getVar();
+
+        // check if the username is in the `users` table
+        $tbl = $this->tblname;
+        $db = \Config\Database::connect();
+        $builder = $db->table($this->tblname);
+        $q = $builder->select("{$tbl}.id")
+                ->where('username', $formdata['username'])
+                ->where('email', $formdata['email'])
+                ->get()
+                ;
+        $cek = $q->getRow();
+        if (empty($cek)) {
+            return $this->failNotFound('Data not found');
+        }
+
+        $model = new UserModel();
+
+        $new_password = $utils->generateRandomString(); // new random string (10 chars)
+        $data = [
+            'password' => password_hash($new_password, PASSWORD_DEFAULT),
+        ];
+        
+        $model->update($cek->id, $data);
+
+        $email = \Config\Services::email();
+
+        $email->setFrom('davidsan@davidsan.my.id', 'Lolighaya Admin');
+        $email->setTo($formdata['email']);
+        
+        $email->setSubject('Reset Password');
+        $email->setMessage("Password Anda telah berhasil direset.
+            \nUsername: {$formdata['username']}
+            \nPassword Baru: {$new_password}");
+        
+        $email->send();
+
+        $cookie_name = 'message';
+        $cookie_value = "Password Anda telah berhasil direset. 
+        Silakan periksa Inbox dan folder Spam di email Anda untuk info password terbaru Anda.";
+        setcookie($cookie_name, $cookie_value, time() + (86400 * 30), "/"); // 86400 = 1 day
+
+        // $response = [
+        //     'status' => 200,
+        //     'error' => null,
+        //     'messages' => [
+        //         'success' => 'Password Anda telah direset dan dikirim ke email Anda'
+        //     ]
+        // ];
+        // return $this->respond($response);
+    }
+    // end public function do_reset_password
 }
